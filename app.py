@@ -3,8 +3,10 @@ from api.routes import api
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
 import os
+from database import DB
 
 app = Flask(__name__)
+DB.init()
 app.config["SECRET_KEY"] = os.getenv('MY_SECRET')
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 app.config["JWT_REFRESH_TOKEN_EXPIRES"] = timedelta(days=30)

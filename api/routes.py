@@ -5,8 +5,8 @@ from flask_jwt_extended import (
 )
 from datetime import timedelta
 from flask_cors import CORS, cross_origin
+from database import DB
 import sys
-import os
 
 
 app = Flask(__name__)
@@ -20,12 +20,44 @@ CORS(api)
 def create_token():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
-    if email != "test@test.com" or password != "test":
+    if DB.DATABASE.user.find_one({'email': email}) and DB.DATABASE.user.find_one({'password': password}):
+        if DB.DATABASE.user.find_one({'email': email})["email"] == email \
+            and DB.DATABASE.user.find_one({'password': password})["password"] == password:
+            status = DB.DATABASE.user.find_one({'email': email})['isUpdate']
+            print('this is the status', status)
+            sys.stdout.flush()
+            access_token = create_access_token(identity=email, fresh=True)
+            refresh_token = create_refresh_token(identity=email)
+            return jsonify(access_token=access_token, refresh_token=refresh_token, status=status), 200
+    else:
         return jsonify({"msg": "Bad username or password"}), 401
 
-    access_token = create_access_token(identity=email, fresh=True)
-    refresh_token = create_refresh_token(identity=email)
-    return jsonify(access_token=access_token, refresh_token=refresh_token)
+
+@api.route('/temporary', methods=['GET', 'POST'])
+@cross_origin()
+def set_password():
+    temporary_password = request.json.get("temporaryPassword", None)
+    print('this is the isUpdate', temporary_password)
+    sys.stdout.flush()
+    new_password = request.json.get("newPassword", None)
+    print('this is the password', new_password)
+    sys.stdout.flush()
+    is_update = request.json.get("isUpdate", None)
+    print('this is the isUpdate', is_update)
+    sys.stdout.flush()
+    if DB.DATABASE.user.find_one({'password': temporary_password}):
+        user_id = DB.DATABASE.user.find_one({'password': temporary_password})['_id']
+        print('this is the old-password', user_id)
+        sys.stdout.flush()
+        try:
+            DB.DATABASE.user.update_one({"_id": user_id}, {"$set": {'password': new_password}})
+            DB.DATABASE.user.update_one({"_id": user_id}, {"$set": {'isUpdate': is_update}})
+            return jsonify({"msg": 'password changed'}), 200
+
+        except Exception:
+            return jsonify({"msg": "update failed"}), 401
+    else:
+        return jsonify({"msg": "Bad username or password"}), 401
 
 
 @api.route("/refresh", methods=['GET', 'POST'])
