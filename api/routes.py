@@ -32,6 +32,19 @@ def create_token():
     else:
         return jsonify({"msg": "Bad username or password"}), 401
 
+            ##if DB.DATABASE.user.find_one({'email': email})['isUpdate'] == True:
+                ##print('this is the status (je suis dans le true)', DB.DATABASE.user.find_one({'email': email})['isUpdate'])
+                ##sys.stdout.flush()
+                ##access_token = create_access_token(identity=email, fresh=True)
+                ##refresh_token = create_refresh_token(identity=email)
+                ####redirect('http://localhost:3000/login')
+                ##return jsonify(access_token=access_token, refresh_token=refresh_token, status=True), 200
+        ##else:
+                ##print('this is the status', DB.DATABASE.user.find_one({'email': email})['isUpdate'])
+                ##sys.stdout.flush()
+                ##return redirect('http://localhost:3000/temporary'), 200
+                ##return jsonify(status=False)
+
 
 @api.route('/temporary', methods=['GET', 'POST'])
 @cross_origin()
